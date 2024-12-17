@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日喝水記錄</title>
+    <style>
+        /* 基本樣式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 32px;
+            text-align: center;
+        }
+
+        /* 卡片設計 */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .card h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 鏈接設計 */
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                margin-top: 10px;
+                padding: 10px;
+            }
+
+            .card {
+                width: 100%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>每日喝水記錄</h1>
+
+        <!-- 每日所需飲水量卡片 -->
+        <div class="card">
+            <h2>每日所需飲水量</h2>
+            <p>{{ daily_water_requirement }} 毫升</p>
+        </div>
+
+        <!-- 目前飲水量卡片 -->
+        <div class="card">
+            <h2>目前的飲水量</h2>
+            <p id="current-water-amount">{{ current_water_intake }} 毫升</p>
+            <button onclick="addWater()">增加飲水量</button>
+            <button onclick="resetWater()">重置飲水量</button> <!-- 新增的按鈕 -->
+        </div>
+
+        <!-- 設置飲水提醒卡片 -->
+        <div class="card">
+            <h2>設置飲水提醒</h2>
+            <label for="reminder-time">每隔 (分鐘):</label>
+            <input type="number" id="reminder-time" min="1" placeholder="輸入分鐘" required>
+            <button onclick="setReminder()">設定提醒</button>
+            <button onclick="stopReminder()">關閉提醒</button>
+        </div>
+
+        <!-- 修改體重鏈接 -->
+        <a href="/profile">修改體重</a>
+    </div>
+
+    <script>
+        let reminderTimer;
+
+            // 增加飲水量的函式
+    function addWater() {
+        const amount = prompt("請輸入增加的飲水量（毫升）:");
+        if (amount && !isNaN(amount)) {
+            fetch('/api/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ amount: parseInt(amount) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("飲水量已更新");
+                document.getElementById("current-water-amount").innerText = data.current_water_intake + " 毫升";
+            });
+        } else {
+            alert("請輸入有效的數字");
+        }
+    }
+
+    // 重置飲水量的函式
+        function resetWater() {
+            fetch('/api/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("飲水量已重置");
+                document.getElementById("current-water-amount").innerText = "0 毫升"; // 更新頁面顯示
+            })
+            .catch(error => {
+                alert("重置飲水量失敗");
+            });
+            }
+
+        function setReminder() {
+            const timeInterval = document.getElementById("reminder-time").value;
+            if (timeInterval && !isNaN(timeInterval) && timeInterval > 0) {
+                reminderTimer = setInterval(() => {
+                    alert("該喝水了！記得補充水分！");
+                }, timeInterval * 60000); // 設定時間間隔，單位為毫秒
+                alert(`提醒已設置，每 ${timeInterval} 分鐘提醒一次！`);
+            } else {
+                alert("請輸入有效的分鐘數");
+            }
+        }
+
+        function stopReminder() {
+            if (reminderTimer) {
+                clearInterval(reminderTimer);
+                alert("飲水提醒已關閉");
+            } else {
+                alert("目前沒有設置提醒");
+            }
+        }
+    </script>
+</body>
+</html>
